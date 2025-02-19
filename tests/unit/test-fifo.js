@@ -1,34 +1,36 @@
-var requirejs = require('requirejs');
-var Fifo = requirejs('utils').Fifo;
+import { describe, it } from "vitest";
+import assert from "assert";
 
-exports.testCreate = function (test) {
-    var f = new Fifo(16);
-    test.done();
-};
+import { Fifo } from "../../src/utils.js";
 
-exports.testSimpleCase = function (test) {
-    var f = new Fifo(16);
-    test.equal(0, f.size);
-    f.put(123);
-    test.equal(1, f.size);
-    test.equal(123, f.get());
-    test.equal(0, f.size);
-    test.done();
-}
-exports.testFull = function (test) {
-    var f = new Fifo(4);
-    test.equal(0, f.size);
-    f.put(123);
-    f.put(125);
-    f.put(126);
-    f.put(127);
-    test.equal(4, f.size);
-    f.put(100);
-    test.equal(4, f.size);
-    test.equal(123, f.get());
-    test.equal(125, f.get());
-    test.equal(126, f.get());
-    test.equal(127, f.get());
-    test.equal(0, f.size);
-    test.done();
-}
+describe("FIFO tests", function () {
+    "use strict";
+    it("creates ok", function () {
+        new Fifo(16);
+    });
+    it("works for simple cases", function () {
+        const f = new Fifo(16);
+        assert.strictEqual(0, f.size);
+        f.put(123);
+        assert.strictEqual(1, f.size);
+        assert.strictEqual(123, f.get());
+        assert.strictEqual(0, f.size);
+    });
+
+    it("works when full", function () {
+        const f = new Fifo(4);
+        assert.strictEqual(0, f.size);
+        f.put(123);
+        f.put(125);
+        f.put(126);
+        f.put(127);
+        assert.strictEqual(4, f.size);
+        f.put(100);
+        assert.strictEqual(4, f.size);
+        assert.strictEqual(123, f.get());
+        assert.strictEqual(125, f.get());
+        assert.strictEqual(126, f.get());
+        assert.strictEqual(127, f.get());
+        assert.strictEqual(0, f.size);
+    });
+});

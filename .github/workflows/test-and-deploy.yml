@@ -1,0 +1,61 @@
+name: jsbeeb tests
+
+on: [push]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - name: npm install
+        run: npm install
+      - name: checks
+        run: npm run ci-checks
+      - name: Short tests
+        run: npm test
+
+  long-test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - name: npm install
+        run: npm install
+      - name: long tests
+        run: npm run test-long
+
+  update-web:
+    needs: [build-and-test, long-test]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - name: Build distribution
+        run: |
+          make dist
+      - uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --cache-control max-age=30 --metadata-directive REPLACE
+        env:
+          AWS_S3_BUCKET: bbc.xania.org
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          SOURCE_DIR: "dist"

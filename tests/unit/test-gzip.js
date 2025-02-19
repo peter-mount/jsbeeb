@@ -1,16 +1,23 @@
-var requirejs = require('requirejs');
-var utils = requirejs('utils');
-var fs = require('fs');
+import { describe, it } from "vitest";
+import assert from "assert";
+import * as fs from "fs";
+import * as utils from "../../src/utils.js";
 
-for (var fileIndex = 1; ; fileIndex++) {
-    var file = "tests/unit/gzip/test-" + fileIndex;
-    if (!fs.existsSync(file)) return;
-    (function (file) {
-        exports["regress.test" + fileIndex] = function (test) {
-            var compressed = new Uint8Array(fs.readFileSync(file + ".gz"));
-            var expected = new Uint8Array(fs.readFileSync(file));
-            test.same(utils.ungzip(compressed), expected);
-            test.done();
-        };
-    })(file);
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function testOneFile(file) {
+    const compressed = new Uint8Array(fs.readFileSync(file + ".gz"));
+    const expected = new Uint8Array(fs.readFileSync(file));
+    assert.deepStrictEqual(utils.ungzip(compressed), expected);
 }
+
+describe("gzip tests", function () {
+    for (let fileIndex = 1; ; fileIndex++) {
+        let file = __dirname + "/gzip/test-" + fileIndex;
+        if (!fs.existsSync(file)) break;
+        it("handles test case " + file, () => testOneFile(file));
+    }
+});
